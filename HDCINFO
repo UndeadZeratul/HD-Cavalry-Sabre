@@ -1,5 +1,9 @@
 // Weapon Spawn Pools
-addSpawnTableSingleEntry => { "tableName": "ChainsawReplaces", "name": "SabreDrop", "weight": "0.2", "persists": "true", "enabled": "#SLG_Sabre_Spawns"}
+newSpawnTable => { "spawnName": "Slogstin.SabreDrop", "enabled": "#SLG_Sabre_Spawns" }
+addSpawnTableSingleEntry => { "tableName": "Slogstin.SabreDrop", "name": "SabreSheathDrop", "weight": "1", "persists": "true", "enabled": "#SLG_Sabre_Spawns" }
+addSpawnTableSingleEntry => { "tableName": "Slogstin.SabreDrop", "name": "VirSabre", "weight": "1", "persists": "true", "enabled": "#SLG_Sabre_Spawns" }
+
+addSpawnTableNestedEntry => { "tableName": "ChainsawReplaces", "name": "Slogstin.SabreDrop", "weight": "0.2", "persists": "true", "enabled": "#SLG_Sabre_Spawns" }
 
 // Merchant Store Entries
 newMerchantStoreItem => { "enabled": "#hdm_enable_sabre", "type": "weapon", "category": "$MERCH_CAT_SABRE", "item": "VirSabre", "icon": "SBRPB0", "displayName": "$MERCH_TAG_SABRE", "basePrice": "450", "flavorText": "$MERCH_FLAVOR_SABRE" }
