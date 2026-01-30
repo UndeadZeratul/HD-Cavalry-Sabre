@@ -183,7 +183,7 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 	}
 
 	override double getWeaponAttackFlags() {
-		return HDCMW_DO_HEADSHOT|HDCMW_DO_PUFF|HDCMW_RECOIL_ATTACKEE;
+		return HDCMW_DO_HEADSHOT|HDCMW_DO_PUFF|HDCMW_DO_WINDOWBUST|HDCMW_RECOIL_ATTACKEE;
 	}
 
 	override double getWeaponAttackHeight() {
@@ -772,23 +772,35 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 		hitcheckhorizontal:
 			TNT1 A 1 HDHorizontalSliceSabre(20, aOff: -20);
 			TNT1 A 1 {
-				HDHorizontalSliceSabre(25, aOff: 10);
-				HDHorizontalSliceSabre(30);
 				HDHorizontalSliceSabre(25, aOff: -10);
+				HDHorizontalSliceSabre(30);
+				HDHorizontalSliceSabre(25, aOff: 10);
 			}
 			TNT1 A 1 HDHorizontalSliceSabre(20, aOff: 20);
 		stop;
 		
 		hitcheckzerkvertical:
-			TNT1 AAA 1 HDVerticalSliceSabre(invoker.flicked ? 340 : 300);
+			TNT1 A 1 HDVerticalSliceSabre(invoker.flicked ? 240 : 200, aOff: -15, pOff: -10);
+			TNT1 A 1 {
+				HDVerticalSliceSabre(invoker.flicked ? 290 : 250, aOff: -5, pOff: -10);
+				HDVerticalSliceSabre(invoker.flicked ? 340 : 300);
+				HDVerticalSliceSabre(invoker.flicked ? 290 : 250, aOff: 5, pOff: 10);
+			}
+			TNT1 A 1 HDVerticalSliceSabre(invoker.flicked ? 340 : 200, aOff: 15, pOff: 10);
 		stop;
 		
 		hitcheckzerkhorizontal:
-			TNT1 AAA 1 HDHorizontalSliceSabre(invoker.flicked ? 340 : 300);
+			TNT1 A 1 HDHorizontalSliceSabre(invoker.flicked ? 240 : 200, aOff: 20);
+			TNT1 A 1 {
+				HDHorizontalSliceSabre(invoker.flicked ? 290 : 250, aOff: -10);
+				HDHorizontalSliceSabre(invoker.flicked ? 340 : 300);
+				HDHorizontalSliceSabre(invoker.flicked ? 290 : 250, aOff: 10);
+			}
+			TNT1 A 1 HDHorizontalSliceSabre(invoker.flicked ? 340 : 200, aOff: 15);
 		stop;
 		
 		stabcheckzerk:
-			TNT1 AAA 1 HDStabSabre(invoker.flicked ? 400 : 350);
+			TNT1 A 1 HDStabSabre(invoker.flicked ? 400 : 350);
 		stop;
 
 		spawn:
