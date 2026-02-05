@@ -28,38 +28,44 @@ Class VirSabreSheath:HDMagAmmo{
 	}
 }
 
-
-class HDSabrePuff:HDBulletPuff{
+class HDSabrePuff : HDBulletPuff {
 	default{
 		stamina 5;scale 1;
 		hdbulletpuff.scarechance 5;
 	}
-	override void postbeginplay(){
+
+	override void postbeginplay() {
 		super.postbeginplay();
-		if(max(abs(pos.x),abs(pos.y),abs(pos.z))>=32768){destroy();return;}
-		if(!random(0,scarechance)){
-			actor fff=spawn("idledummy",pos,ALLOW_REPLACE);
-			fff.stamina=random(60,120);
-			hdmobai.frighten(fff,256);
+
+		if(max(abs(pos.x), abs(pos.y), abs(pos.z)) >= 32768){
+			destroy();
+			return;
 		}
-		//A_StartSound("misc/bullethit",0,0,0.5*stamina*stamina);
-		A_StartSound("Sabre/wall",CHAN_7,0,1.02*stamina*stamina);
-		A_ChangeVelocity(-0.4,0,frandom(0.1,0.4),CVF_RELATIVE);
-		trymove(pos.xy+vel.xy,false);
-		int stm=stamina;
+
+		if(!random(0, scarechance)) {
+			actor fff = spawn("idledummy", pos, ALLOW_REPLACE);
+			fff.stamina = random(60, 120);
+			HDMobAI.frighten(fff, 256);
+		}
+
+		// A_StartSound("misc/bullethit", 0, 0, 0.5 * stamina * stamina);
+		A_StartSound("Sabre/wall", CHAN_7, 0, 1.02 * stamina * stamina);
+		A_ChangeVelocity(-0.4, 0, frandom(0.1, 0.4), CVF_RELATIVE);
+		trymove(pos.xy + vel.xy, false);
+		int stm = stamina;
 		// this doesn't actually do anything
-		//fadeafter=frandom(0,1);
-		scale*=frandom(0.9,1.1);
-		for(int i=0;i<stamina;i++){
+		// fadeafter = frandom(0,1);
+		scale *= frandom(0.9, 1.1);
+		for(int i = 0; i < stamina; i++) {
 			A_SpawnParticle("white",
-				SPF_RELATIVE,70,frandom(4,20)*getdefaultbytype((class<actor>)(missilename)).scale.x,0,
+				SPF_RELATIVE, 70, frandom(4,20) * getdefaultbytype((class<actor>)(missilename)).scale.x,0,
 				frandom(-3,3),frandom(-3,3),frandom(0,4),
 				frandom(-0.4,0.4)*stm,frandom(-0.4,0.4)*stm,frandom(0.4,1.2)*stm,
 				frandom(-0.1,0.1),frandom(-0.1,0.1),-1.
 			);
 
-//			actor ch=spawn(missilename,self.pos,ALLOW_REPLACE);
-//			ch.vel=self.vel+(random(-stm,stm),random(-stm,stm),random(-2,12));
+			// actor ch=spawn(missilename,self.pos,ALLOW_REPLACE);
+			// ch.vel=self.vel+(random(-stm,stm),random(-stm,stm),random(-2,12));
 		}
 	}
 	states{
@@ -97,7 +103,7 @@ class HDSabreSpark : Actor {
 class HDSabreSparkL : HDSabreSpark {
 	States {
 		Spawn:
-			TNT1 A 1 nodelay A_SetRoll(roll+50);
+			TNT1 A 1 nodelay A_SetRoll(roll + 50);
 			KRP0 ABC 1 Bright;
 			stop;
 	}
@@ -106,7 +112,7 @@ class HDSabreSparkL : HDSabreSpark {
 class HDSabreSparkR : HDSabreSpark {
 	States {
 		Spawn:
-			TNT1 A 1 nodelay A_SetRoll(roll-7);
+			TNT1 A 1 nodelay A_SetRoll(roll - 7);
 			KRP0 ABC 1 Bright;
 			stop;
 	}
@@ -115,19 +121,13 @@ class HDSabreSparkR : HDSabreSpark {
 class HDSabreSparkV : HDSabreSpark {
 	States {
 		Spawn:
-			TNT1 A 1 nodelay A_SetRoll(roll+90);
+			TNT1 A 1 nodelay A_SetRoll(roll + 90);
 			KRP0 ABC 1 Bright;
 			stop;
 	}
 }
 
 class VirSabre : HDCoreBaseMeleeWeapon {
-
-	// Temporary Storage for what type of attack is performed
-	//   1 = Vertical
-	//   2 = Horizontal
-	//   3 = Stab
-	int swingMode;
 
 	default {
 		-HDWeapon.FITSINBACKPACK
@@ -147,6 +147,9 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 		HDWeapon.loadoutcodes "
 		\cusheathed - 0/1, the sword comes with a sheath.
 		";
+		
+		HDCoreBaseMeleeWeapon.corpseDmgMult 0.6;
+		HDCoreBaseMeleeWeapon.attackFlags   HDCMW_DO_HEADSHOT|HDCMW_DO_PUFF|HDCMW_DO_WINDOWBUST|HDCMW_RECOIL_ATTACKEE;
 	}
 	
 	override double weaponbulk() { return !weaponstatus[SABRE_SHEATHED] ? weaponstatus[SABRE_POCKET] ? 130 : 75 : 35; }
@@ -157,15 +160,11 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 
 	override void initializewepstats(bool idfa) { weaponstatus[SABRE_SHEATHED] = 0; }
 
-	override string,double getpickupsprite() {
-		// if (weaponstatus[SABRE_SHEATHED]) {
-			return (weaponstatus[SABRE_SHEATHED] ? "SBRPA0" : "SBRPB0"), 1.0;
-		// } else {
-		// 	return "SBRPB0", 1.0;
-		// }
-	}
+	override string,double getpickupsprite() { return (weaponstatus[SABRE_SHEATHED] ? "SBRPA0" : "SBRPB0"), 1.0; }
 	
-	override string getHelpText(){
+	// TODO: Localize
+	override string getHelpText() {
+		LocalizeHelp();
 		return
 		WEPHELP_FIRE.."  Vertical Swing\n"
 		..WEPHELP_ALTFIRE.."   Horizontal Swing\n"
@@ -181,33 +180,32 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 
 		weaponstatus[SABRE_POCKET] = 1;
 	}
+	
+	action void HDStabSabre(int dmg = -1, name dmgType = 'piercing', double aOff = 0.0, int range = -1, double pOff = 0.0, name puffType = 'HDSabreSparkV', int flags = 0) {
+		A_StartSound("misc/fwoosh", CHAN_WEAPON, CHANF_OVERLAP, volume: 0.02, pitch: 1.5);
 
-	override double getWeaponAttackFlags() {
-		return HDCMW_DO_HEADSHOT|HDCMW_DO_PUFF|HDCMW_DO_WINDOWBUST|HDCMW_RECOIL_ATTACKEE;
+		A_MeleeWeaponAttack(HDCMW_ATTACK_THRUST, dmg, dmgType, aOff, range, pOff, puffType, flags);
+	}
+	
+	action void A_SheathCheck() {
+		// HDPlayerPawn hdp=HDPlayerPawn(self);
+		// bool nosheath=countinv("VirSabreSheath")
+		if (!countinv("VirSabreSheath")) {
+			setWeaponState("nope");
+			A_WeaponMessage(StringTable.Localize("You do not have a sheath!"), 70);
+		}
 	}
 
 	override double getWeaponAttackHeight() {
 		return owner.height - 12;
 	}
 
-	override double getWeaponDamage() {
-		return 0.0;
-	}
-
 	override name getWeaponDamageType() {
-		return swingMode == 3 ? 'piercing' : 'slashing';
-	}
-
-	override double getWeaponAttackAngleOffset() {
-		return 0.0;
+		return _swingMode == HDCMW_ATTACK_THRUST ? 'piercing' : 'slashing';
 	}
 
 	override double getWeaponRange() {
-		return swingMode == 3 ? 85.0 : 70.0;
-	}
-
-	override double getWeaponAttackPitchOffset() {
-		return 0.0;
+		return _swingMode == HDCMW_ATTACK_THRUST ? 85.0 : 70.0;
 	}
 
 	override double getWeaponHeadShotDamageBonus() {
@@ -222,42 +220,24 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 		return false;
 	}
 
-	override bool getWeaponDominantSwing(double rotation, bool leftHanded) {
-		return false;
-	}
-
-	override double getWeaponSwingDamageBonus(double deltaAngle, double deltaPitch) {
-		switch (swingMode) {
-			case 1:  return abs(-deltaPitch - deltaAngle);
-			case 2:  return abs(deltaAngle);
-			case 3:  return abs(deltaPitch);
-			default: return 0.0;
-		}
-	}
-
-	override double getWeaponCorpseDamageBonus() {
-		return 0.6;
-	}
-
 	override string getWeaponPuff() {
-		switch (swingMode) {
-			case 1:  return "HDSabreSparkL";
-			case 3:  return "HDSabreSparkV";
-			default: return "HDSabreSpark";
+		switch (_swingMode) {
+			case HDCMW_ATTACK_THRUST:
+				return "HDSabreSparkV";
+			case HDCMW_ATTACK_DOWN:
+				return "HDSabreSparkL";
+			case HDCMW_ATTACK_RIGHT:
+				return "HDSabreSparkR";
+			case HDCMW_ATTACK_UP:
+			case HDCMW_ATTACK_LEFT:
+			default:
+				return "HDSabreSpark";
 		}
 	}
 
-	override void doWeaponPuff(int aOff, double dist, int pOff) {
-		super.doWeaponPuff(aOff, dist, pOff);
-
-		owner.lineAttack(
-			owner.angle + aOff, dist, owner.pitch + pOff,
-			0,
-			"none",
-			"HDSabrePuff",
-			flags: LAF_NORANDOMPUFFZ|LAF_OVERRIDEZ,
-			offsetz: getWeaponAttackHeight()
-		);
+	override void doWeaponPuff(name puffType, int aOff, double dist, int pOff) {
+		super.doWeaponPuff(puffType, aOff, dist, pOff);
+		super.doWeaponPuff("HDSabrePuff", aOff, dist, pOff);
 	}
 
 	override void doWeaponAttack(Actor attackee, int dmg, name dmgType) {
@@ -275,48 +255,11 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 		if (hdmp) hdmp.stunned += getWeaponHeadShotStun(dmg);
 	}
 
-	// override void doWeaponHitRecoil(Actor attackee, double deltaAngle, double deltaPitch) {
-	// 	double iyaw = player.cmd.yaw * (65535.0 / 360.0);
-	// 	if (abs(iyaw) > 0.5) attackee.A_SetAngle(attackee.angle - iyaw * 100, SPF_INTERPOLATE);
-
-	// 	double ipitch = player.cmd.pitch * (65535.0 / 360.0);
-	// 	if (abs(ipitch) > (0.5 * 65535 / 360)) attackee.A_SetPitch(attackee.angle + ipitch * 100, SPF_INTERPOLATE);
-	// }
-
 	override void doAttackSound(Actor attackee) {
 		if (attackee.bNOBLOOD) {
 			attackee.A_StartSound("Sabre/wall", CHAN_BODY, 0, 1.25);
 		} else {
 			attackee.A_StartSound("Sabre/flesh", CHAN_BODY, 0, 0.5);
-		}
-	}
-
-	action void HDVerticalSliceSabre(int dmg = -1, name dmgType = 'slashing', double aOff = 0.0, int range = -1, double pOff = 0.0, int flags = 0) {
-		invoker.swingMode = 1;
-
-		A_MeleeWeaponAttack(dmg, dmgType, aOff, range, pOff, flags);
-	}
-	
-	action void HDHorizontalSliceSabre(int dmg = -1, name dmgType = 'slashing', double aOff = 0.0, int range = -1, double pOff = 0.0, int flags = 0) {
-		invoker.swingMode = 2;
-
-		A_MeleeWeaponAttack(dmg, dmgType, aOff, range, pOff, flags);
-	}
-	
-	action void HDStabSabre(int dmg = -1, name dmgType = 'piercing', double aOff = 0.0, int range = -1, double pOff = 0.0, int flags = 0) {
-		invoker.swingMode = 3;
-
-		A_StartSound("misc/fwoosh", CHAN_WEAPON, CHANF_OVERLAP, volume: 0.02, pitch: 1.5);
-
-		A_MeleeWeaponAttack(dmg, dmgType, aOff, range, pOff, flags);
-	}
-	
-	action void A_SheathCheck() {
-		// HDPlayerPawn hdp=HDPlayerPawn(self);
-		// bool nosheath=countinv("VirSabreSheath")
-		if (!countinv("VirSabreSheath")) {
-			setWeaponState("nope");
-			A_WeaponMessage(StringTable.Localize("You do not have a sheath!"), 70);
 		}
 	}
 
@@ -330,14 +273,16 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 		} else {
 
 			// TODO: Extract & Hoist into HDCoreLib?
-			dmg += (swingMode == 2 ? 3.0 : 6.0)
+			dmg += ((_swingMode == HDCMW_ATTACK_LEFT || _swingMode == HDCMW_ATTACK_RIGHT) ? 3.0 : 6.0)
 				* (atkLine.hitActor
 					? HDMath.TowardsEachOther(owner, atkLine.hitActor)
 					: (atkLine.hitLocation - owner.pos).length() - (atkLine.hitLocation - (owner.pos + owner.vel)).length()
 				);
 		}
 
-		dmg += owner.player.onGround ? min(getWeaponSwingDamageBonus(deltaAngle, deltaPitch) * 5, dmg * 3) : 0.0;
+		dmg += owner.player.onGround
+			? min(getWeaponSwingDamageBonus(deltaAngle, deltaPitch) * 5, dmg * 3)
+			: 0.0;
 
 		// Multiply damage based on player strength,
 		// whether attack resulted in a headshot,
@@ -409,6 +354,7 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			SBSH C 0 A_StartSound("Sabre/Pull", CHAN_7);
 			SBSH C 0 {
 				invoker.weaponstatus[SABRE_SHEATHED] = 0;
+
 				HDMagAmmo.GiveMag(self, "VirSabreSheath", invoker.weaponstatus[SABRE_SHEATHED]);
 			}
 			SBSH DEFGHIJK 2;
@@ -419,52 +365,49 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			SBRD A 0 A_JumpIf(invoker.wasHolding && pressingFire(), "nope");
 			SBRD A 1 {
 				A_WeaponReady(WRF_ALL);
-				invoker.flicked = invoker.washolding = false;
-				invoker.swingMode = 0;
+				invoker.flicked = invoker.wasHolding = false;
 			}
 			goto readyend;
 		readysheathed:
 			SBSH A 0 A_JumpIf(invoker.wasHolding && pressingFire(), "nope");
 			SBSH A 1 {
 				A_WeaponReady(WRF_ALL|WRF_NOSECONDARY);
-				invoker.flicked = invoker.washolding = false;
+				invoker.flicked = invoker.wasHolding = false;
 			}
 			goto readyend;
 		reload:
 			TNT1 A 0 A_JumpIf(invoker.weaponstatus[SABRE_SHEATHED], "unsheath");
 			SBRD A 0 A_SheathCheck();
 			SBS2 ABCD 2;
-	//		SBSH KJIH 2;
-			SBSH G 0 A_StartSound("Sabre/Click", CHAN_7);
-			SBSH G 15;
+			// SBSH KJIH 2;
+			SBSH G 15 A_StartSound("Sabre/Click", CHAN_7);
 			SBSH F 0 A_StartSound("Sabre/Sheath", CHAN_7);
 			SBSH FEDC 2 {
 				let mmm = HDMagAmmo(findinventory("VirSabreSheath"));
 				if (mmm) mmm.TakeMag(true);
 				invoker.weaponstatus[SABRE_SHEATHED] = 1;
 			}
-			SBSH BA 2;
-			SBSH A 2;
+			SBSH BAA 2;
 			goto readyend;
 		fire:
 			SBVW A 0 A_JumpIf(invoker.weaponstatus[SABRE_SHEATHED], "unsheath");
 		hold:
 			TNT1 A 0;
-	//		KRN5 BCD 2;
+			// KRN5 BCD 2;
 		startverti:
 			#### A 0 A_JumpIf(invoker.zerk, "zerkvertistart");
 			SBVW A 0 A_StartSound("weapons/pocket", CHAN_6);
 			SBVW ABCDEF 2;
-	//		SBVW C 0 A_WeaponBusy;
+			// SBVW C 0 A_WeaponBusy();
 			goto holdverti;
 		zerkvertistart:
 			SBVW A 0 A_StartSound("weapons/pocket", CHAN_6);
 			SBVW ABCDEF 1;
-	//		SBVW C 0 A_WeaponBusy;
+			// SBVW C 0 A_WeaponBusy();
 			goto holdverti;
 		holdverti:
-			SBVW F 1; //A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
-			#### A 0 A_JumpIf(pressingreload(),"VertiSwingWithdraw");
+			SBVW F 1; // A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+			#### A 0 A_JumpIf(pressingReload(),"VertiSwingWithdraw");
 			TNT1 A 0 A_ReFire("holdverti");
 		goto vertiswinghard;
 		vertiswingreturn:
@@ -474,7 +417,7 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 		vertiswinghard:
 			#### A 0 A_JumpIf(invoker.zerk, "zerkvertiswinghard");
 			SBVW HI 2;
-			#### A 0 A_Overlay(5,"hitcheckvertical",false);
+			#### A 0 A_Overlay(5, "hitcheckvertical", false);
 			SBVS A 0 {
 				A_StartSound("Sabre/swing", CHAN_7);
 
@@ -483,33 +426,33 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 
 			SBVS ACDEFG 1;
 			TNT1 A 1;
-			//#### A 0 A_JumpIf(pressingaltfire(),"altfire");
-	//		TNT1 AAAAAA 1 A_JumpIf(pressingaltfire(),"swingverti");
-	//		#### A 0 A_JumpIf(pressingfire(),"swingverti");
-	//		#### A 0 A_JumpIf(pressingaltfire(),"HoriSwingHard");
-	//		TNT1 A 0 A_ReFire("startfire");
-			TNT1 A 0 A_WeaponBusy;
+			// #### A 0 A_JumpIf(pressingAltFire(), "altfire");
+			// TNT1 AAAAAA 1 A_JumpIf(pressingAltFire(), "swingverti");
+			// #### A 0 A_JumpIf(pressingFire(), "swingverti");
+			// #### A 0 A_JumpIf(pressingAltFire(), "HoriSwingHard");
+			// TNT1 A 0 A_ReFire("startfire");
+			TNT1 A 0 A_WeaponBusy();
 			goto vertirecoverswing;
 
 		altfire:
 			KRN5 A 0 A_JumpIf(invoker.weaponstatus[SABRE_SHEATHED], "unsheath");
 		althold:
 			TNT1 A 0;
-	//		KRN5 BCD 2;
+			// KRN5 BCD 2;
 		starthori:
 			#### A 0 A_JumpIf(invoker.zerk, "zerkhoristart");
 			SBHW A 0 A_StartSound("weapons/pocket", CHAN_6);
 			SBHW ABCDEF 2;
-	//		SBHW C 0 A_WeaponBusy;
+			// SBHW C 0 A_WeaponBusy();
 			goto holdhori;
 		zerkhoristart:
 			SBHW A 0 A_StartSound("weapons/pocket", CHAN_6);
 			SBHW ABCDEF 1;
-	//		SBHW C 0 A_WeaponBusy;
+			// SBHW C 0 A_WeaponBusy();
 			goto holdhori;
 		holdhori:
-			SBHW F 1; //A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
-			#### A 0 A_JumpIf(pressingreload(),"HoriSwingWithdraw");
+			SBHW F 1; // A_WeaponReady(WRF_NOFIRE|WRF_NOSWITCH);
+			#### A 0 A_JumpIf(pressingReload(),"HoriSwingWithdraw");
 			TNT1 A 0 A_ReFire("holdhori");
 			goto horiswinghard;
 		horiswingreturn:
@@ -519,7 +462,7 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 		horiswinghard:
 			#### A 0 A_JumpIf(invoker.zerk, "zerkhoriswinghard");
 			SBHW ED 2;
-			#### A 0 A_Overlay(5,"hitcheckhorizontal",false);
+			#### A 0 A_Overlay(5, "hitcheckhorizontal", false);
 			SBHS A 0 {
 				A_StartSound("Sabre/swing", CHAN_7);
 
@@ -527,37 +470,29 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			}
 			SBHS ABCDEF 1;
 			TNT1 A 2;
-			//#### A 0 A_JumpIf(pressingaltfire(),"altfire");
-	//		TNT1 AAAAAA 1 A_JumpIf(pressingfire(),"VertiSwingHard");
-	//		#### A 0 A_JumpIf(pressingfire(),"VertiSwingHard");
-	//		#### A 0 A_JumpIf(pressingaltfire(),"VertiSwingHard");
-	//		TNT1 A 0 A_ReFire("startfire");
-			TNT1 A 0 A_WeaponBusy;
+			// #### A 0 A_JumpIf(pressingAltFire(),"altfire");
+			// TNT1 AAAAAA 1 A_JumpIf(pressingFire(), "VertiSwingHard");
+			// #### A 0 A_JumpIf(pressingFire(), "VertiSwingHard");
+			// #### A 0 A_JumpIf(pressingAltFire(), "VertiSwingHard");
+			// TNT1 A 0 A_ReFire("startfire");
+			TNT1 A 0 A_WeaponBusy();
 			goto horirecoverswing;
 			
 		Vertirecoverswing:
-	//		TNT1 A 0 A_JumpIf(pressingaltfire(),"horiswinghard");
-			TNT1 A 12{
-				if (invoker.pressingaltfire()) {
-					setWeaponState("horiswinghard");
-				} else if (invoker.pressingaltreload()) {
-					setWeaponState("stylehoriswing");
-				}
-			}
+			// TNT1 A 0 A_JumpIf(pressingAltFire(),"horiswinghard");
+			TNT1 A 0 A_JumpIf(pressingAltFire(), "horiswinghard");
+			TNT1 A 0 A_JumpIf(pressingAltReload(), "stylehoriswing");
+			TNT1 A 12;
 			SBVR ABCD 2;
-	//		#### A 0 A_JumpIf(pressingfire(),"nope");
+			// #### A 0 A_JumpIf(pressingFire(),"nope");
 			goto readyend;
 		Horirecoverswing:
-	//		TNT1 A 0 A_JumpIf(pressingaltfire(),"vertiswinghard");
-			TNT1 A 12 {
-				if (invoker.pressingfire()) {
-					setWeaponState("vertiswinghard");
-				} else if (invoker.pressingaltreload()) {
-					setWeaponState("stylesheath");
-				}
-			}
+			// TNT1 A 0 A_JumpIf(pressingAltFire(),"vertiswinghard");
+			TNT1 A 0 A_JumpIf(pressingFire(), "vertiswinghard");
+			TNT1 A 0 A_JumpIf(pressingAltReload(), "stylesheath");
+			TNT1 A 12;
 			SBHR ABCD 2;
-	//		#### A 0 A_JumpIf(pressingfire(),"nope");
+			// #### A 0 A_JumpIf(pressingFire(),"nope");
 			goto readyend;
 		
 		VertiSwingWithdraw:
@@ -571,8 +506,8 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			
 		zerkvertiswinghard:
 			SBVW HI 2;
-	//		TNT1 A 1;
-			#### A 0 A_Overlay(5,"hitcheckzerkvertical",false);
+			// TNT1 A 1;
+			#### A 0 A_Overlay(5, "hitcheckzerkvertical", false);
 			SBVS A 0 {
 				A_StartSound("Sabre/swing", CHAN_7);
 
@@ -580,17 +515,17 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			}
 			SBVS ACDEFG 1;
 			TNT1 A 2;
-			//#### A 0 A_JumpIf(pressingaltfire(),"altfire");
-	//		TNT1 A 3;
-	//		#### A 0 A_JumpIf(pressingfire(),"swingreturn");
-	//		#### A 0 A_JumpIf(pressingaltfire(),"startfire");
-	//		TNT1 A 0 A_ReFire("startfire");
-			TNT1 A 0 A_WeaponBusy;
+			// #### A 0 A_JumpIf(pressingAltFire(),"altfire");
+			// TNT1 A 3;
+			// #### A 0 A_JumpIf(pressingFire(), "swingreturn");
+			// #### A 0 A_JumpIf(pressingAltFire(), "startfire");
+			// TNT1 A 0 A_ReFire("startfire");
+			TNT1 A 0 A_WeaponBusy();
 			goto vertirecoverswing;
 			
 		zerkhoriswinghard:
 			SBHW ED 2;
-	//		TNT1 A 1;
+			// TNT1 A 1;
 			#### A 0 A_Overlay(5,"hitcheckzerkhorizontal",false);
 			SBHS A 0 {
 				A_StartSound("Sabre/swing", CHAN_7);
@@ -599,12 +534,12 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			}
 			SBHS ABCDEF 1;
 			TNT1 A 2;
-			//#### A 0 A_JumpIf(pressingaltfire(),"altfire");
-	//		TNT1 A 3;
-	//		#### A 0 A_JumpIf(pressingfire(),"swingreturn");
-	//		#### A 0 A_JumpIf(pressingaltfire(),"startfire");
-	//		TNT1 A 0 A_ReFire("startfire");
-			TNT1 A 0 A_WeaponBusy;
+			// #### A 0 A_JumpIf(pressingAltFire(), "altfire");
+			// TNT1 A 3;
+			// #### A 0 A_JumpIf(pressingFire(), "swingreturn");
+			// #### A 0 A_JumpIf(pressingAltFire(), "startfire");
+			// TNT1 A 0 A_ReFire("startfire");
+			TNT1 A 0 A_WeaponBusy();
 			goto horirecoverswing;
 			
 		firemode:
@@ -624,22 +559,21 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 		stab:
 			SBST A 0 A_JumpIf(invoker.zerk, "zerkstab");
 			SBST AB 2;
-			SBST A 0 HDStabSabre(40, pOff: 2.0);
+			SBST A 0 HDStabSabre(dmg: 40, pOff: 2.0);
 			SBST C 7;
-	//		goto stabrecoverswing;
+			// goto stabrecoverswing;
 		stabrecoverswing:
 			SBST BA 2;
-	//		#### A 0 A_JumpIf(pressingfire(),"nope");
+			// #### A 0 A_JumpIf(pressingFire(), "nope");
 			goto readyend;
 		
 		zerkstab:
 			SBST AB 2;
-	//		#### A 0 A_Overlay(1,"stabcheckzerk",false);
-			SBST A 0 HDStabSabre(120, pOff: 2.0);
+			// #### A 0 A_Overlay(1,"stabcheckzerk", false);
+			SBST A 0 HDStabSabre(dmg: 120, pOff: 2.0);
 			SBST C 7;
 			goto stabrecoverswing;
 
-			
 		altreload:
 			SBRD A 0 A_SheathCheck();
 		stylecheck:
@@ -648,12 +582,12 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			#### A 0 A_JumpIf(invoker.zerk, "zerkstylestart");
 			SBVW A 0 A_StartSound("weapons/pocket", CHAN_6);
 			SBVW ABCDEF 2;
-			SBVW C 0 A_WeaponBusy;
+			SBVW C 0 A_WeaponBusy();
 			goto stylevertiswing;
 		zerkstylestart:
 			SBVW A 0 A_StartSound("weapons/pocket", CHAN_6);
 			SBVW ABCDEF 1;
-			SBVW C 0 A_WeaponBusy;
+			SBVW C 0 A_WeaponBusy();
 			goto stylevertiswing;
 		stylevertiswing:
 			#### A 0 A_JumpIf(invoker.zerk, "zerkstylevertiswing");
@@ -667,12 +601,12 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 
 			SBVS ACDEFG 1;
 			TNT1 A 1;
-			//#### A 0 A_JumpIf(pressingaltfire(),"altfire");
-	//		TNT1 AAAAAA 1 A_JumpIf(pressingaltfire(),"swingverti");
-	//		#### A 0 A_JumpIf(pressingfire(),"swingverti");
-	//		#### A 0 A_JumpIf(pressingaltfire(),"HoriSwingHard");
-	//		TNT1 A 0 A_ReFire("startfire");
-			TNT1 A 0 A_WeaponBusy;
+			// #### A 0 A_JumpIf(pressingAltFire(),"altfire");
+			// TNT1 AAAAAA 1 A_JumpIf(pressingAltFire(),"swingverti");
+			// #### A 0 A_JumpIf(pressingFire(),"swingverti");
+			// #### A 0 A_JumpIf(pressingAltFire(),"HoriSwingHard");
+			// TNT1 A 0 A_ReFire("startfire");
+			TNT1 A 0 A_WeaponBusy();
 			goto stylehoriswing;
 		stylehoriswing:
 			#### A 0 A_JumpIf(invoker.zerk, "zerkstylehoriswing");
@@ -685,12 +619,12 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			}
 			SBHS ABCDEF 1;
 			SBHS F 9;
-			//#### A 0 A_JumpIf(pressingaltfire(),"altfire");
-	//		TNT1 AAAAAA 1 A_JumpIf(pressingfire(),"VertiSwingHard");
-	//		#### A 0 A_JumpIf(pressingfire(),"VertiSwingHard");
-	//		#### A 0 A_JumpIf(pressingaltfire(),"VertiSwingHard");
-	//		TNT1 A 0 A_ReFire("startfire");
-			TNT1 A 0 A_WeaponBusy;
+			// #### A 0 A_JumpIf(pressingAltFire(),"altfire");
+			// TNT1 AAAAAA 1 A_JumpIf(pressingFire(),"VertiSwingHard");
+			// #### A 0 A_JumpIf(pressingFire(),"VertiSwingHard");
+			// #### A 0 A_JumpIf(pressingAltFire(),"VertiSwingHard");
+			// TNT1 A 0 A_ReFire("startfire");
+			TNT1 A 0 A_WeaponBusy();
 			goto stylesheath;
 		stylesheath:
 			SBSH A 0 A_StartSound("Sabre/swing",CHAN_7);
@@ -711,7 +645,7 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			
 		zerkstylevertiswing:
 			SBVW HI 2;
-	//		TNT1 A 1;
+			// TNT1 A 1;
 			#### A 0 A_Overlay(5,"hitcheckzerkvertical",false);
 			SBVS A 0 {
 				A_StartSound("Sabre/swing", CHAN_7);
@@ -720,16 +654,16 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			}
 			SBVS ACDEFG 1;
 			TNT1 A 2;
-			//#### A 0 A_JumpIf(pressingaltfire(),"altfire");
-	//		TNT1 A 3;
-	//		#### A 0 A_JumpIf(pressingfire(),"swingreturn");
-	//		#### A 0 A_JumpIf(pressingaltfire(),"startfire");
-	//		TNT1 A 0 A_ReFire("startfire");
-			TNT1 A 0 A_WeaponBusy;
+			// #### A 0 A_JumpIf(pressingAltFire(),"altfire");
+			// TNT1 A 3;
+			// #### A 0 A_JumpIf(pressingFire(),"swingreturn");
+			// #### A 0 A_JumpIf(pressingAltFire(),"startfire");
+			// TNT1 A 0 A_ReFire("startfire");
+			TNT1 A 0 A_WeaponBusy();
 			goto zerkstylehoriswing;
 		zerkstylehoriswing:
 			SBHW ED 2;
-	//		TNT1 A 1;
+			// TNT1 A 1;
 			#### A 0 A_Overlay(5,"hitcheckzerkhorizontal",false);
 			SBHS A 0 {
 				A_StartSound("Sabre/swing", CHAN_7);
@@ -738,12 +672,12 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			}
 			SBHS ABCDEF 1;
 			SBHS F 9;
-			//#### A 0 A_JumpIf(pressingaltfire(),"altfire");
-	//		TNT1 A 3;
-	//		#### A 0 A_JumpIf(pressingfire(),"swingreturn");
-	//		#### A 0 A_JumpIf(pressingaltfire(),"startfire");
-	//		TNT1 A 0 A_ReFire("startfire");
-			TNT1 A 0 A_WeaponBusy;
+			// #### A 0 A_JumpIf(pressingAltFire(),"altfire");
+			// TNT1 A 3;
+			// #### A 0 A_JumpIf(pressingFire(),"swingreturn");
+			// #### A 0 A_JumpIf(pressingAltFire(),"startfire");
+			// TNT1 A 0 A_ReFire("startfire");
+			TNT1 A 0 A_WeaponBusy();
 			goto stylesheath;
 		
 			
@@ -760,48 +694,48 @@ class VirSabre : HDCoreBaseMeleeWeapon {
 			goto nope;
 			
 		hitcheckvertical:
-			TNT1 A 1 HDVerticalSliceSabre(20, aOff: -15, pOff: -10);
+			TNT1 A 1 A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: 20, aOff: -15, pOff: -10);
 			TNT1 A 1 {
-				HDVerticalSliceSabre(25, aOff: -5, pOff: -10);
-				HDVerticalSliceSabre(30);
-				HDVerticalSliceSabre(25, aOff: 5, pOff: 10);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: 25, aOff: -5, pOff: -10);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: 30);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: 25, aOff: 5, pOff: 10);
 			}
-			TNT1 A 1 HDVerticalSliceSabre(20, aOff: 15, pOff: 10);
+			TNT1 A 1 A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: 20, aOff: 15, pOff: 10);
 		stop;
 		
 		hitcheckhorizontal:
-			TNT1 A 1 HDHorizontalSliceSabre(20, aOff: -20);
+			TNT1 A 1 A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: 20, aOff: -20);
 			TNT1 A 1 {
-				HDHorizontalSliceSabre(25, aOff: -10);
-				HDHorizontalSliceSabre(30);
-				HDHorizontalSliceSabre(25, aOff: 10);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: 25, aOff: -10);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: 30);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: 25, aOff: 10);
 			}
-			TNT1 A 1 HDHorizontalSliceSabre(20, aOff: 20);
+			TNT1 A 1 A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: 20, aOff: 20);
 		stop;
 		
 		hitcheckzerkvertical:
-			TNT1 A 1 HDVerticalSliceSabre(invoker.flicked ? 240 : 200, aOff: -15, pOff: -10);
+			TNT1 A 1 A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: invoker.flicked ? 240 : 200, aOff: -15, pOff: -10);
 			TNT1 A 1 {
-				HDVerticalSliceSabre(invoker.flicked ? 290 : 250, aOff: -5, pOff: -10);
-				HDVerticalSliceSabre(invoker.flicked ? 340 : 300);
-				HDVerticalSliceSabre(invoker.flicked ? 290 : 250, aOff: 5, pOff: 10);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: invoker.flicked ? 290 : 250, aOff: -5, pOff: -10);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: invoker.flicked ? 340 : 300);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: invoker.flicked ? 290 : 250, aOff: 5, pOff: 10);
 			}
-			TNT1 A 1 HDVerticalSliceSabre(invoker.flicked ? 340 : 200, aOff: 15, pOff: 10);
+			TNT1 A 1 A_MeleeWeaponAttack(HDCMW_ATTACK_DOWN, dmg: invoker.flicked ? 340 : 200, aOff: 15, pOff: 10);
 		stop;
 		
 		hitcheckzerkhorizontal:
-			TNT1 A 1 HDHorizontalSliceSabre(invoker.flicked ? 240 : 200, aOff: 20);
+			TNT1 A 1 A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: invoker.flicked ? 240 : 200, aOff: 20);
 			TNT1 A 1 {
-				HDHorizontalSliceSabre(invoker.flicked ? 290 : 250, aOff: -10);
-				HDHorizontalSliceSabre(invoker.flicked ? 340 : 300);
-				HDHorizontalSliceSabre(invoker.flicked ? 290 : 250, aOff: 10);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: invoker.flicked ? 290 : 250, aOff: -10);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: invoker.flicked ? 340 : 300);
+				A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: invoker.flicked ? 290 : 250, aOff: 10);
 			}
-			TNT1 A 1 HDHorizontalSliceSabre(invoker.flicked ? 340 : 200, aOff: 15);
+			TNT1 A 1 A_MeleeWeaponAttack(HDCMW_ATTACK_RIGHT, dmg: invoker.flicked ? 340 : 200, aOff: 15);
 		stop;
 		
-		stabcheckzerk:
-			TNT1 A 1 HDStabSabre(invoker.flicked ? 400 : 350);
-		stop;
+		// stabcheckzerk:
+		// 	TNT1 A 1 HDStabSabre(dmg: invoker.flicked ? 400 : 350);
+		// stop;
 
 		spawn:
 			SBRP A 0 A_JumpIf(invoker.weaponstatus[SABRE_SHEATHED], 2);
